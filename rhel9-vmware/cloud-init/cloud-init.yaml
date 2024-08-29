@@ -5,7 +5,7 @@
   become: false
 
   vars:
-    vmware_guest_name: ansible-demo-vm
+    vmware_guest_name: cop-rhel9-test
     vmware_guest_subdomain: gf7fr.dynamic.redhatworkshops.io
     vmware_datacenter: "SDDC-Datacenter"
     vmware_folder: "/Workloads/sandbox-gf7fr"
