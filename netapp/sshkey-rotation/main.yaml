@@ -1,0 +1,47 @@
+---
+- name: Rotate SSH keys on NetApp storage array
+  hosts: <your netapp array>
+  gather_facts: no
+  vars:
+    new_public_key: "{{ lookup('file', '/path/to/your/new_netapp_key.pub') }}"
+    ssh_user: "<your-user>"
+    ssh_host: "<your-netapp-id>"
+  
+  tasks:
+    - name: Gather current SSH authorized keys
+      netapp.ontap.na_ssh_key:
+        host: "{{ ssh_host }}"
+        username: "{{ ssh_user }}"
+        password: "{{ lookup('env', 'NETAPP_PASSWORD') }}"  # Use Ansible Vault for better security
+        state: "present"
+      register: ssh_keys
+
+    - name: Remove old SSH key if exists
+      netapp.ontap.na_ssh_key:
+        host: "{{ ssh_host }}"
+        username: "{{ ssh_user }}"
+        password: "{{ lookup('env', 'NETAPP_PASSWORD') }}"
+        key: "{{ item.key }}"
+        state: "absent"
+      loop: "{{ ssh_keys.ssh_keys }}"
+      when: ssh_keys.ssh_keys is defined
+
+    - name: Add new SSH public key
+      netapp.ontap.na_ssh_key:
+        host: "{{ ssh_host }}"
+        username: "{{ ssh_user }}"
+        password: "{{ lookup('env', 'NETAPP_PASSWORD') }}"
+        key: "{{ new_public_key }}"
+        state: "present"
+
+    - name: Verify SSH key has been added
+      netapp.ontap.na_ssh_key:
+        host: "{{ ssh_host }}"
+        username: "{{ ssh_user }}"
+        password: "{{ lookup('env', 'NETAPP_PASSWORD') }}"
+        state: "list"
+      register: result
+
+    - name: Show SSH key status
+      debug:
+        var: result
